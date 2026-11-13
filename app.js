@@ -3,52 +3,6 @@
 
   var app = document.getElementById("app");
 
-  var DISEASE_ALIASES = {
-    "mucoviscidose": ["cystic fibrosis", "fibrose kystique"],
-    "drepanocytose": ["sickle cell", "anemie falciforme", "sickle cell disease"],
-    "thalassemie-beta": ["thalassemia", "beta thalassemia"],
-    "maladie-de-huntington": ["huntington", "huntington disease", "choree de huntington"],
-    "syndrome-de-l-x-fragile": ["fragile x", "fragile x syndrome", "x fragile"],
-    "syndrome-tremblement-ataxie-x-fragile": ["fxtas"],
-    "syndrome-de-rett": ["rett", "rett syndrome"],
-    "maladie-de-parkinson-1": ["parkinson", "parkinson disease"],
-    "maladie-de-parkinson-8": ["parkinson", "parkinson disease", "parkinson familial"],
-    "maladie-de-parkinson-liee-a-gba": ["parkinson", "parkinson disease", "gaucher parkinson"],
-    "maladie-d-alzheimer-1": ["alzheimer", "alzheimer disease"],
-    "maladie-d-alzheimer-3": ["alzheimer", "alzheimer disease", "alzheimer precoce"],
-    "maladie-d-alzheimer-4": ["alzheimer", "alzheimer disease"],
-    "maladie-d-alzheimer-susceptibilite-apoe": ["alzheimer", "alzheimer disease", "apoe e4"],
-    "syndrome-de-lynch": ["lynch", "lynch syndrome", "hnpcc", "cancer colorectal hereditaire"],
-    "polypose-adenomateuse-familiale": ["fap", "polypose", "familial adenomatous polyposis", "cancer colorectal"],
-    "neurofibromatose-de-type-1": ["neurofibromatosis", "von recklinghausen", "nf1"],
-    "syndrome-de-cowden": ["cowden", "hamartoma", "pten"],
-    "syndrome-de-li-fraumeni": ["li-fraumeni", "li fraumeni", "lfs", "sarcomes sein"],
-    "cancer-du-sein-et-de-l-ovaire-hereditaire": ["cancer du sein", "breast cancer", "cancer de l'ovaire", "ovarian cancer", "hboc", "brca"],
-    "anemie-de-fanconi-groupe-s": ["fanconi", "fanconi anemia"],
-    "anemie-de-fanconi-groupe-d1": ["fanconi", "fanconi anemia"],
-    "maladie-de-von-hippel-lindau": ["von hippel lindau", "vhl", "hemangioblastome"],
-    "neoplasie-endocrinienne-multiple-de-type-2": ["men2", "nem2", "multiple endocrine neoplasia", "carcinome medullaire thyroide", "pheochromocytome"],
-    "cancer-bronchique-non-a-petites-cellules": ["cancer du poumon", "lung cancer", "nsclc", "egfr poumon", "adenocarcinome pulmonaire"],
-    "glioblastome": ["glioblastoma", "gliome", "tumeur cerebrale"],
-    "cancers-somatiques-kras": ["kras", "cancer pancreas", "cancer colorectal", "pancreatic cancer"],
-    "syndrome-de-noonan-lie-a-kras": ["noonan", "noonan syndrome"],
-    "myopathie-de-duchenne": ["duchenne", "duchenne muscular dystrophy", "dystrophie musculaire"],
-    "myopathie-de-becker": ["becker", "becker muscular dystrophy"],
-    "hemophilie-b": ["hemophilia b", "hemophilie", "facteur ix", "christmas disease"],
-    "diabete-de-type-1": ["diabete", "type 1 diabetes", "diabete sucre", "iddm"],
-    "diabete-neonatal-permanent": ["diabete neonatal", "neonatal diabetes"],
-    "sclerose-laterale-amyotrophique-1": ["sla", "als", "amyotrophic lateral sclerosis", "maladie de charcot"],
-    "insuffisance-ovarienne-prematuree-1": ["poi", "premature ovarian insufficiency", "menopause precoce"],
-    "dystrophie-musculaire-d-emery-dreifuss": ["emery dreifuss", "emery-dreifuss"],
-    "cardiomyopathie-dilatee-1a": ["cardiomyopathie dilatee", "dilated cardiomyopathy", "troubles de conduction"],
-    "lipodystrophie-familiale-partielle": ["lipodystrophie", "lipodystrophy", "dunnigan"],
-    "progeria-de-hutchinson-gilford": ["progeria", "hgps", "vieillissement premature"],
-    "maladie-de-gaucher": ["gaucher", "gaucher disease", "maladie de surcharge"],
-    "amyotrophie-spinale-infantile": ["sma", "spinal muscular atrophy", "amyotrophie spinale", "werdnig hoffmann"],
-    "retinoblastome": ["retinoblastoma", "tumeur de la retine", "leucocorie"],
-    "lymphome-de-burkitt": ["burkitt", "burkitt lymphoma", "lymphome"],
-    "hyperlipoproteinemie-familiale-type-3": ["dysbetalipoproteinemie", "hyperlipidemie familiale", "type iii"]
-  };
 
   function normalize(str) {
     return (str || "")
@@ -72,6 +26,29 @@
 
   function geneSym(symbol) {
     return '<span class="gene-sym">' + escapeHtml(symbol) + "</span>";
+  }
+
+  function refListHtml(refs) {
+    if (!refs || !refs.length) return "";
+    return '<ul class="ref-list">' + refs.map(function (r) {
+      return '<li class="ref-item">' +
+        '<span class="ref-title">' + escapeHtml(r.title) + "</span>" +
+        '<span class="ref-meta">' + escapeHtml(r.journal) + " · " + r.year + "</span>" +
+        (r.doi ? '<a class="ref-doi" href="https://doi.org/' + escapeHtml(r.doi) + '" target="_blank" rel="noopener">doi:' + escapeHtml(r.doi) + " ↗</a>" : "") +
+      "</li>";
+    }).join("") + "</ul>";
+  }
+
+  function dedupeRefs(refs) {
+    var seen = {};
+    var out = [];
+    refs.forEach(function (r) {
+      var key = r.doi || r.title;
+      if (seen[key]) return;
+      seen[key] = true;
+      out.push(r);
+    });
+    return out;
   }
 
   function buildIndex() {
@@ -381,6 +358,7 @@
               "<h2>Expression cellulaire</h2>" +
               exprRows +
             "</div>" +
+            (gene.references && gene.references.length ? '<div class="card"><h2>Références clés</h2>' + refListHtml(gene.references) + "</div>" : "") +
           "</div>" +
           '<div class="card">' +
             "<h2>Pathologies associées (" + gene.diseases.length + ")</h2>" +
@@ -397,6 +375,13 @@
     if (!agg) { renderNotFound(); return; }
     var d = agg.disease;
     document.title = d.name + " — LOCUS";
+    var rawRefs = [];
+    agg.genes.forEach(function (g) {
+      g.diseases.forEach(function (dd) {
+        if (dd.id === id && dd.references) rawRefs = rawRefs.concat(dd.references);
+      });
+    });
+    var diseaseRefs = dedupeRefs(rawRefs);
     var geneCards = agg.genes.map(function (g) {
       return '<a class="gene-link-card" href="#/gene/' + encodeURIComponent(g.symbol) + '">' +
         '<span><span class="gene-sym">' + escapeHtml(g.symbol) + "</span><br><span class=\"gl-name\">" + escapeHtml(g.name) + "</span></span>" +
@@ -428,6 +413,7 @@
           "<h2>Mécanisme moléculaire</h2>" +
           "<p style=\"margin:0;color:var(--ink-soft)\">" + escapeHtml(d.mechanism) + "</p>" +
         "</div>" +
+        (diseaseRefs.length ? '<div class="card" style="margin-top:20px"><h2>Références clés</h2>' + refListHtml(diseaseRefs) + "</div>" : "") +
       "</div>";
   }
 
