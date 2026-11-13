@@ -251,7 +251,7 @@
     box.querySelectorAll(".suggest-item").forEach(function (el) {
       el.addEventListener("mousedown", function (ev) {
         ev.preventDefault();
-        location.hash = el.getAttribute("data-route");
+        go(el.getAttribute("data-route"));
       });
       el.addEventListener("mousemove", function () {
         setActive(parseInt(el.id.replace("opt-", ""), 10));
@@ -296,7 +296,7 @@
       else if (ev.key === "Enter") {
         ev.preventDefault();
         var pick = currentResults[activeIndex] || currentResults[0];
-        if (pick) location.hash = pick.route;
+        if (pick) go(pick.route);
       } else if (ev.key === "Escape") { closeSuggestions(); input.blur(); }
     });
     document.addEventListener("click", function (ev) {
@@ -437,6 +437,17 @@
 
   var pendingScroll = null;
 
+  function go(hash, replace) {
+    if (location.hash === hash) return;
+    try {
+      if (replace) history.replaceState(null, "", hash);
+      else history.pushState(null, "", hash);
+      route();
+    } catch (e) {
+      location.hash = hash;
+    }
+  }
+
   function route() {
     var hash = location.hash || "#/";
     var parts = hash.replace(/^#\//, "").split("/");
@@ -449,7 +460,7 @@
       if (gene) renderGene(gene); else renderNotFound();
     } else if (section === "protein") {
       var byProt = findGeneByProtein(arg);
-      if (byProt) location.replace("#/gene/" + encodeURIComponent(byProt.symbol));
+      if (byProt) { go("#/gene/" + encodeURIComponent(byProt.symbol), true); return; }
       else renderNotFound();
     } else if (section === "disease") {
       renderDisease(arg);
@@ -472,7 +483,7 @@
       if (!onHome) {
         ev.preventDefault();
         pendingScroll = target;
-        location.hash = "#/";
+        go("#/");
       }
     });
   });
@@ -482,6 +493,17 @@
       var input = document.getElementById("search-input");
       if (input) { ev.preventDefault(); input.focus(); }
     }
+  });
+
+  document.addEventListener("click", function (ev) {
+    if (ev.defaultPrevented) return;
+    var t = ev.target;
+    var a = t && t.closest ? t.closest('a[href^="#/"]') : null;
+    if (!a || a.hasAttribute("data-scroll")) return;
+    var href = a.getAttribute("href");
+    if (!href) return;
+    ev.preventDefault();
+    go(href);
   });
 
   window.addEventListener("hashchange", route);
