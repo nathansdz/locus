@@ -81,6 +81,24 @@
         });
       });
     });
+    if (typeof DATA_DISEASE_GROUPS !== "undefined") {
+      var seenDiseaseRoute = {};
+      index.forEach(function (e) { if (e.type === "disease") seenDiseaseRoute[e.route] = true; });
+      DATA_DISEASE_GROUPS.forEach(function (g) {
+        var route = "#/disease/" + encodeURIComponent(g.id);
+        if (seenDiseaseRoute[route]) return;
+        var terms = [g.name].concat(g.aliases || []);
+        if (g.omim) terms.push("OMIM " + g.omim, g.omim);
+        var ng = (g.genes || []).length;
+        index.push({
+          type: "disease",
+          label: g.name,
+          sub: (g.omim ? "OMIM " + g.omim + " · " : "") + (g.inheritance ? g.inheritance + " · " : "") + ng + " gène" + (ng > 1 ? "s" : ""),
+          terms: terms,
+          route: route
+        });
+      });
+    }
     if (window.LOCUS && window.LOCUS.extraIndex) {
       index = index.concat(window.LOCUS.extraIndex());
     }
@@ -138,6 +156,30 @@
   }
 
   var DISEASES = diseaseMap();
+
+  if (typeof DATA_DISEASE_GROUPS !== "undefined") {
+    DATA_DISEASE_GROUPS.forEach(function (g) {
+      var id = g.id;
+      if (g.omim) {
+        Object.keys(DISEASES).forEach(function (k) {
+          if (DISEASES[k].disease.omim === g.omim) id = k;
+        });
+      }
+      if (!DISEASES[id]) DISEASES[id] = { disease: g, genes: [], extra: [] };
+      if (!DISEASES[id].extra) DISEASES[id].extra = [];
+      (g.genes || []).forEach(function (s) {
+        var atlas = null;
+        for (var i = 0; i < GENOME_DATA.genes.length; i++) {
+          if (GENOME_DATA.genes[i].symbol === s) { atlas = GENOME_DATA.genes[i]; break; }
+        }
+        if (atlas) {
+          if (DISEASES[id].genes.indexOf(atlas) === -1) DISEASES[id].genes.push(atlas);
+        } else if (DISEASES[id].extra.indexOf(s) === -1) {
+          DISEASES[id].extra.push(s);
+        }
+      });
+    });
+  }
 
   var OMIM_TO_DISEASE = {};
   Object.keys(DISEASES).forEach(function (id) { OMIM_TO_DISEASE[DISEASES[id].disease.omim] = id; });
@@ -394,7 +436,19 @@
       });
     });
     var diseaseRefs = dedupeRefs(rawRefs);
-    var geneCards = agg.genes.map(function (g) {
+    var subsHtml = "";
+    if (d.subs && d.subs.length) {
+      subsHtml = '<div class="chip-wrap" style="margin-top:12px">' + d.subs.map(function (sid) {
+        var sd = DISEASES[sid];
+        return '<a class="chip" href="#/disease/' + encodeURIComponent(sid) + '">' + escapeHtml(sd ? sd.disease.name : sid) + "</a>";
+      }).join("") + "</div>";
+    }
+    var allGenes = agg.genes.slice();
+    (agg.extra || []).forEach(function (s) {
+      var loc = (window.LOCUS && window.LOCUS.locusOf) ? window.LOCUS.locusOf(s) : "";
+      allGenes.push({ symbol: s, name: s, locus: loc });
+    });
+    var geneCards = allGenes.map(function (g) {
       return '<a class="gene-link-card" href="#/gene/' + encodeURIComponent(g.symbol) + '">' +
         '<span><span class="gene-sym">' + escapeHtml(g.symbol) + "</span><br><span class=\"gl-name\">" + escapeHtml(g.name) + "</span></span>" +
         '<span class="gl-locus">' + escapeHtml(g.locus) + "</span>" +
@@ -407,8 +461,8 @@
         '<div class="page-head">' +
           "<h1>" + escapeHtml(d.name) + "</h1>" +
           '<div class="chip-row">' +
-            '<span class="meta-chip"><span class="chip-label">OMIM</span><a href="https://omim.org/entry/' + escapeHtml(d.omim) + '" target="_blank" rel="noopener">' + escapeHtml(d.omim) + " ↗</a></span>" +
-            '<span class="meta-chip"><span class="chip-label">Hérédité</span>' + escapeHtml(d.inheritance) + "</span>" +
+            (d.omim ? '<span class="meta-chip"><span class="chip-label">OMIM</span><a href="https://omim.org/entry/' + escapeHtml(d.omim) + '" target="_blank" rel="noopener">' + escapeHtml(d.omim) + " ↗</a></span>" : "") +
+            (d.inheritance ? '<span class="meta-chip"><span class="chip-label">Hérédité</span>' + escapeHtml(d.inheritance) + "</span>" : "") +
           "</div>" +
         "</div>" +
         '<div class="detail-grid">' +
@@ -417,8 +471,8 @@
             "<p style=\"margin:0;color:var(--ink-soft)\">" + escapeHtml(d.description) + "</p>" +
           "</div>" +
           '<div class="card">' +
-            "<h2>Gènes associés (" + agg.genes.length + ")</h2>" +
-            geneCards +
+            "<h2>Gènes associés (" + agg.genes.length + (agg.extra ? agg.extra.length : 0) + ")</h2>" +
+            geneCards + subsHtml +
           "</div>" +
         "</div>" +
         '<div class="card" style="margin-top:20px">' +

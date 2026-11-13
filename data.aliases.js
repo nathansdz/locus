@@ -35,7 +35,7 @@ const DISEASE_ALIASES = {
     "sclerose-laterale-amyotrophique-1": ["sla", "als", "amyotrophic lateral sclerosis", "maladie de charcot"],
     "insuffisance-ovarienne-prematuree-1": ["poi", "premature ovarian insufficiency", "menopause precoce"],
     "dystrophie-musculaire-d-emery-dreifuss": ["emery dreifuss", "emery-dreifuss"],
-    "cardiomyopathie-dilatee-1a": ["cardiomyopathie dilatee", "dilated cardiomyopathy", "troubles de conduction"],
+    "cardiomyopathie-dilatee-1a": ["cardiomyopathie dilatee", "dilated cardiomyopathy", "dcm", "dcm1a", "troubles de conduction"],
     "lipodystrophie-familiale-partielle": ["lipodystrophie", "lipodystrophy", "dunnigan"],
     "progeria-de-hutchinson-gilford": ["progeria", "hgps", "vieillissement premature"],
     "maladie-de-gaucher": ["gaucher", "gaucher disease", "maladie de surcharge"],
@@ -72,7 +72,9 @@ const DISEASE_ALIASES = {
     "neoplasie-endocrinienne-multiple-de-type-1": ["nem1", "men1", "multiple endocrine neoplasia", "neoplasie endocrinienne multiple 1"],
     "neurofibromatose-de-type-2": ["nf2", "neurofibromatose 2", "schwannome vestibulaire", "merline"],
     "maladie-de-machado-joseph": ["machado joseph", "mjd", "sca3", "ataxie spinocerebelleuse", "atxn3"],
-    "surdite-non-syndromique-dfnb1": ["surdite", "deafness", "dfnb1", "connexine 26", "cx26", "gjb2"]
+    "surdite-non-syndromique-dfnb1": ["surdite", "deafness", "dfnb1", "connexine 26", "cx26", "gjb2"],
+    "cmt": ["cmt", "charcot-marie-tooth", "charcot marie tooth", "neuropathie hereditaire motrice et sensitive"],
+    "cardiomyopathies": ["cardiomyopathie", "cardiomyopathie genetique", "cardiomyopathies hereditaires"]
 };
 
 if (typeof module !== "undefined" && module.exports) {

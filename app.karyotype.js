@@ -148,6 +148,11 @@
       "</div>";
   }
 
+  function locusOf(sym) {
+    var l = SYMBOL_LOCUS[sym];
+    return l ? "chr" + l.chr + " " + l.chr + l.band : "";
+  }
+
   var SYM_NORM = null;
   function normMap() {
     if (!SYM_NORM) {
@@ -215,6 +220,7 @@
     geneLocusCard: geneLocusCard,
     findLocusGene: findLocusGene,
     renderSimpleGene: renderSimpleGene,
-    phenoCardHtml: phenoCardHtml
+    phenoCardHtml: phenoCardHtml,
+    locusOf: locusOf
   };
 })();
