@@ -33,8 +33,8 @@
     return '<ul class="ref-list">' + refs.map(function (r) {
       return '<li class="ref-item">' +
         '<span class="ref-title">' + escapeHtml(r.title) + "</span>" +
-        '<span class="ref-meta">' + escapeHtml(r.journal) + " · " + r.year + "</span>" +
-        (r.doi ? '<a class="ref-doi" href="https://doi.org/' + escapeHtml(r.doi) + '" target="_blank" rel="noopener">doi:' + escapeHtml(r.doi) + " ↗</a>" : "") +
+        '<span class="ref-meta">' + escapeHtml(r.journal) + " \u00b7 " + r.year + "</span>" +
+        (r.doi ? '<a class="ref-doi" href="https://doi.org/' + escapeHtml(r.doi) + '" target="_blank" rel="noopener">doi:' + escapeHtml(r.doi) + " \u2197</a>" : "") +
       "</li>";
     }).join("") + "</ul>";
   }
@@ -81,6 +81,10 @@
         });
       });
     });
+    if (window.LOCUS && window.LOCUS.extraIndex) {
+      index = index.concat(window.LOCUS.extraIndex());
+    }
+    index.forEach(function (e) { e.nterms = (e.terms || []).map(normalize); });
     return index;
   }
 
@@ -88,8 +92,9 @@
 
   function scoreEntry(entry, q) {
     var best = -1;
-    for (var i = 0; i < entry.terms.length; i++) {
-      var t = normalize(entry.terms[i]);
+    var nterms = entry.nterms || entry.terms;
+    for (var i = 0; i < nterms.length; i++) {
+      var t = nterms[i] && entry.nterms ? nterms[i] : normalize(nterms[i]);
       if (!t) continue;
       var s;
       if (t === q) s = 1000;
@@ -354,6 +359,7 @@
                 (aliasList ? "<dt>Alias du gène</dt><dd>" + escapeHtml(aliasList) + "</dd>" : "") +
               "</dl>" +
             "</div>" +
+            (window.LOCUS && window.LOCUS.geneLocusCard ? window.LOCUS.geneLocusCard(gene) : "") +
             '<div class="card">' +
               "<h2>Expression cellulaire</h2>" +
               exprRows +
@@ -447,6 +453,12 @@
       else renderNotFound();
     } else if (section === "disease") {
       renderDisease(arg);
+    } else if (section === "genes") {
+      if (window.LOCUS && window.LOCUS.renderGenes) {
+        window.LOCUS.renderGenes(app, arg, decodeURIComponent(parts[2] || ""));
+      } else {
+        renderNotFound();
+      }
     } else {
       renderNotFound();
     }
