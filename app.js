@@ -462,7 +462,6 @@
     } else {
       renderNotFound();
     }
-    window.scrollTo(0, 0);
     app.focus({ preventScroll: true });
   }
 
