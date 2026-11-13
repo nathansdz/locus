@@ -595,20 +595,20 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
 
 .karyotype-detail {
   display: grid;
-  grid-template-columns: 240px 1fr;
+  grid-template-columns: auto 1fr;
   gap: 20px;
   margin-top: 20px;
   align-items: start;
 }
 
-.k-detail-svg .chrom-svg { width: 100%; height: auto; }
+.k-detail-svg .chrom-svg { display: block; height: min(60vh, 440px); width: auto; margin: 0 auto; }
 
 .band { cursor: pointer; }
 .band:hover { stroke: var(--accent-bright); stroke-width: 1.5; }
 .band.sel { stroke: var(--accent-bright); stroke-width: 2; }
 
 .band-list {
-  max-height: 460px;
+  max-height: min(60vh, 440px);
   overflow: auto;
   display: grid;
   gap: 2px;

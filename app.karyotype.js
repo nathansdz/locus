@@ -116,7 +116,8 @@
     if (selChr) {
       app.querySelectorAll(".band[data-band]").forEach(function (el) {
         el.addEventListener("click", function () {
-          location.hash = "#/genes/" + selChr + "/" + encodeURIComponent(el.getAttribute("data-band"));
+          var h = "#/genes/" + selChr + "/" + encodeURIComponent(el.getAttribute("data-band"));
+          if (window.LOCUS_NAV) window.LOCUS_NAV(h); else location.hash = h;
         });
       });
     }

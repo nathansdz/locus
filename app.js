@@ -447,6 +447,7 @@
       location.hash = hash;
     }
   }
+  window.LOCUS_NAV = go;
 
   function route() {
     var hash = location.hash || "#/";
