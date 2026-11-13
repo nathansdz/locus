@@ -124,11 +124,12 @@
     return best;
   }
 
-  function search(query) {
+  function search(query, types) {
     var q = normalize(query);
     if (!q) return [];
     var results = [];
     SEARCH_INDEX.forEach(function (entry) {
+      if (types && types.indexOf(entry.type) === -1) return;
       var s = scoreEntry(entry, q);
       if (s > 0) results.push({ entry: entry, score: s });
     });
@@ -206,7 +207,9 @@
 
   /* ---------- Home ---------- */
 
-  var EXAMPLES = ["TP53", "p53", "BRCA1", "CFTR", "mucoviscidose", "Huntington", "Alzheimer", "drépanocytose", "Parkinson", "Rett"];
+  var EXAMPLES_GENE = ["TP53", "p53", "BRCA1", "CFTR", "A1BG"];
+  var EXAMPLES_DISEASE = ["mucoviscidose", "Charcot-Marie-Tooth", "Huntington", "drépanocytose", "cardiomyopathie hypertrophique", "Parkinson"];
+  var SEARCH_ICON = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.8-3.8"/></svg>';
 
   function renderHome() {
     document.title = "LOCUS — Atlas du génome humain";
@@ -217,18 +220,33 @@
       '<section class="hero">' +
         '<p class="eyebrow">Atlas du génome humain · gène → protéine → cellule → pathologie</p>' +
         "<h1>Du <em>gène</em> à la <em>maladie</em>.</h1>" +
-        '<p class="hero-lede">Recherchez un gène, une protéine ou une maladie pour explorer leurs liens : produit protéique, types cellulaires d\'expression et pathologies associées aux mutations.</p>' +
-        '<div class="search-wrap">' +
-          '<div class="search-box">' +
-            '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.8-3.8"/></svg>' +
-            '<input id="search-input" type="text" role="combobox" aria-expanded="false" aria-controls="suggestions" aria-autocomplete="list" autocomplete="off" spellcheck="false" placeholder="Nom d\'un gène, d\'une protéine ou d\'une maladie…" aria-label="Rechercher un gène, une protéine ou une maladie">' +
-            '<span class="search-kbd" aria-hidden="true">/</span>' +
+        '<p class="hero-lede">Deux barres de recherche : un gène (ou sa protéine), ou une pathologie — pour explorer leurs liens : produit protéique, types cellulaires d\'expression et pathologies associées aux mutations.</p>' +
+        '<div class="search-duo">' +
+          '<div class="search-wrap">' +
+            '<label class="search-label" for="search-gene">Gène / protéine</label>' +
+            '<div class="search-box">' +
+              SEARCH_ICON +
+              '<input id="search-gene" type="text" role="combobox" aria-expanded="false" aria-controls="suggestions-gene" aria-autocomplete="list" autocomplete="off" spellcheck="false" placeholder="Nom d\'un gène ou d\'une protéine… (ex. TP53, p53)" aria-label="Rechercher un gène ou une protéine">' +
+              '<span class="search-kbd" aria-hidden="true">/</span>' +
+            "</div>" +
+            '<div id="suggestions-gene" class="suggestions" role="listbox" aria-label="Suggestions gènes et protéines"></div>' +
           "</div>" +
-          '<div id="suggestions" class="suggestions" role="listbox" aria-label="Suggestions"></div>' +
+          '<div class="search-wrap">' +
+            '<label class="search-label" for="search-disease">Pathologie</label>' +
+            '<div class="search-box">' +
+              SEARCH_ICON +
+              '<input id="search-disease" type="text" role="combobox" aria-expanded="false" aria-controls="suggestions-disease" aria-autocomplete="list" autocomplete="off" spellcheck="false" placeholder="Nom d\'une maladie… (ex. mucoviscidose, Charcot-Marie-Tooth)" aria-label="Rechercher une pathologie">' +
+            "</div>" +
+            '<div id="suggestions-disease" class="suggestions" role="listbox" aria-label="Suggestions maladies"></div>' +
+          "</div>" +
         "</div>" +
-        '<div class="hero-examples"><span>Exemples :</span>' +
-          EXAMPLES.map(function (e) {
-            return '<button type="button" class="chip" data-q="' + escapeHtml(e) + '">' + escapeHtml(e) + "</button>";
+        '<div class="hero-examples"><span>Gènes :</span>' +
+          EXAMPLES_GENE.map(function (e) {
+            return '<button type="button" class="chip" data-bar="gene" data-q="' + escapeHtml(e) + '">' + escapeHtml(e) + "</button>";
+          }).join("") +
+          '<span class="ex-sep"></span><span>Maladies :</span>' +
+          EXAMPLES_DISEASE.map(function (e) {
+            return '<button type="button" class="chip" data-bar="disease" data-q="' + escapeHtml(e) + '">' + escapeHtml(e) + "</button>";
           }).join("") +
         "</div>" +
       "</section>" +
@@ -254,8 +272,11 @@
 
   /* ---------- Recherche ---------- */
 
-  var activeIndex = -1;
-  var currentResults = [];
+  var BARS = {};
+  function barState(suggId) {
+    if (!BARS[suggId]) BARS[suggId] = { results: [], active: -1 };
+    return BARS[suggId];
+  }
 
   function badgeFor(type) {
     if (type === "gene") return '<span class="suggest-badge gene">Gène</span>';
@@ -263,12 +284,13 @@
     return '<span class="suggest-badge disease">Maladie</span>';
   }
 
-  function renderSuggestions(results, query) {
-    var box = document.getElementById("suggestions");
-    var input = document.getElementById("search-input");
+  function renderSuggestions(results, query, suggId, inputId) {
+    var box = document.getElementById(suggId);
+    var input = document.getElementById(inputId);
     if (!box) return;
-    currentResults = results;
-    activeIndex = results.length ? 0 : -1;
+    var st = barState(suggId);
+    st.results = results;
+    st.active = results.length ? 0 : -1;
     if (!results.length) {
       box.innerHTML = '<div class="suggest-empty">Aucun résultat pour « ' + escapeHtml(query) + " ». Essayez un symbole de gène (ex. TP53), une protéine (ex. p53) ou une maladie (ex. mucoviscidose).</div>";
       box.classList.add("open");
@@ -285,7 +307,7 @@
       groups[type].forEach(function (r) {
         var i = results.indexOf(r);
         var main = r.type === "gene" ? geneSym(r.label) : escapeHtml(r.label);
-        html += '<div class="suggest-item' + (i === activeIndex ? " active" : "") + '" role="option" id="opt-' + i + '" data-route="' + r.route + '" aria-selected="' + (i === activeIndex) + '">' +
+        html += '<div class="suggest-item' + (i === st.active ? " active" : "") + '" role="option" id="opt-' + i + '" data-route="' + r.route + '" aria-selected="' + (i === st.active) + '">' +
           badgeFor(r.type) +
           '<span><span class="suggest-main">' + main + '</span><br><span class="suggest-sub">' + escapeHtml(r.sub) + "</span></span>" +
         "</div>";
@@ -305,54 +327,70 @@
     });
   }
 
-  function setActive(i) {
-    if (!currentResults.length) return;
-    activeIndex = Math.max(0, Math.min(currentResults.length - 1, i));
-    var box = document.getElementById("suggestions");
-    var input = document.getElementById("search-input");
+  function setActive(i, suggId) {
+    var st = barState(suggId);
+    if (!st.results.length) return;
+    st.active = Math.max(0, Math.min(st.results.length - 1, i));
+    var box = document.getElementById(suggId);
+    var input = document.getElementById(suggId.replace("suggestions-", "search-"));
     box.querySelectorAll(".suggest-item").forEach(function (el) {
       var idx = parseInt(el.id.replace("opt-", ""), 10);
-      el.classList.toggle("active", idx === activeIndex);
-      el.setAttribute("aria-selected", idx === activeIndex ? "true" : "false");
+      el.classList.toggle("active", idx === st.active);
+      el.setAttribute("aria-selected", idx === st.active ? "true" : "false");
     });
-    input.setAttribute("aria-activedescendant", "opt-" + activeIndex);
-    var el = document.getElementById("opt-" + activeIndex);
+    if (input) input.setAttribute("aria-activedescendant", "opt-" + st.active);
+    var el = document.getElementById("opt-" + st.active);
     if (el) el.scrollIntoView({ block: "nearest" });
   }
 
-  function closeSuggestions() {
-    var box = document.getElementById("suggestions");
-    var input = document.getElementById("search-input");
-    if (box) box.classList.remove("open");
-    if (input) input.setAttribute("aria-expanded", "false");
+  function closeSuggestions(suggId) {
+    Object.keys(BARS).forEach(function (id) {
+      if (suggId && id !== suggId) return;
+      var box = document.getElementById(id);
+      var input = document.getElementById(id.replace("suggestions-", "search-"));
+      if (box) box.classList.remove("open");
+      if (input) input.setAttribute("aria-expanded", "false");
+    });
+  }
+
+  function initSearchBar(inputId, suggId, types) {
+    var input = document.getElementById(inputId);
+    if (!input) return;
+    input.addEventListener("input", function () {
+      renderSuggestions(search(input.value, types), input.value.trim(), suggId, inputId);
+    });
+    input.addEventListener("focus", function () {
+      if (input.value.trim()) renderSuggestions(search(input.value, types), input.value.trim(), suggId, inputId);
+    });
+    input.addEventListener("keydown", function (ev) {
+      var st = barState(suggId);
+      if (ev.key === "ArrowDown") { ev.preventDefault(); setActive(st.active + 1, suggId); }
+      else if (ev.key === "ArrowUp") { ev.preventDefault(); setActive(st.active - 1, suggId); }
+      else if (ev.key === "Enter") {
+        ev.preventDefault();
+        var pick = st.results[st.active] || st.results[0];
+        if (pick) go(pick.route);
+      } else if (ev.key === "Escape") { closeSuggestions(suggId); input.blur(); }
+    });
   }
 
   function initSearch() {
-    var input = document.getElementById("search-input");
-    if (!input) return;
-    input.addEventListener("input", function () {
-      renderSuggestions(search(input.value), input.value.trim());
-    });
-    input.addEventListener("focus", function () {
-      if (input.value.trim()) renderSuggestions(search(input.value), input.value.trim());
-    });
-    input.addEventListener("keydown", function (ev) {
-      if (ev.key === "ArrowDown") { ev.preventDefault(); setActive(activeIndex + 1); }
-      else if (ev.key === "ArrowUp") { ev.preventDefault(); setActive(activeIndex - 1); }
-      else if (ev.key === "Enter") {
-        ev.preventDefault();
-        var pick = currentResults[activeIndex] || currentResults[0];
-        if (pick) go(pick.route);
-      } else if (ev.key === "Escape") { closeSuggestions(); input.blur(); }
-    });
+    initSearchBar("search-gene", "suggestions-gene", ["gene", "protein"]);
+    initSearchBar("search-disease", "suggestions-disease", ["disease"]);
     document.addEventListener("click", function (ev) {
       if (!ev.target.closest(".search-wrap")) closeSuggestions();
     });
     document.querySelectorAll(".hero-examples .chip").forEach(function (chip) {
       chip.addEventListener("click", function () {
+        var bar = chip.getAttribute("data-bar") === "disease" ? "disease" : "gene";
+        var inputId = bar === "disease" ? "search-disease" : "search-gene";
+        var suggId = bar === "disease" ? "suggestions-disease" : "suggestions-gene";
+        var types = bar === "disease" ? ["disease"] : ["gene", "protein"];
+        var input = document.getElementById(inputId);
+        if (!input) return;
         input.value = chip.getAttribute("data-q");
         input.focus();
-        renderSuggestions(search(input.value), input.value.trim());
+        renderSuggestions(search(input.value, types), input.value.trim(), suggId, inputId);
       });
     });
   }
@@ -534,7 +572,7 @@
       else renderNotFound();
     } else if (section === "disease") {
       renderDisease(arg);
-    } else if (section === "genes") {
+    } else if (section === "genes" || section === "caryo") {
       if (window.LOCUS && window.LOCUS.renderGenes) {
         window.LOCUS.renderGenes(app, arg, decodeURIComponent(parts[2] || ""));
       } else {
@@ -560,7 +598,7 @@
 
   document.addEventListener("keydown", function (ev) {
     if (ev.key === "/" && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) {
-      var input = document.getElementById("search-input");
+      var input = document.getElementById("search-gene");
       if (input) { ev.preventDefault(); input.focus(); }
     }
   });

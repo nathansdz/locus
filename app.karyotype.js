@@ -86,18 +86,10 @@
         return '<a class="band-row' + (b.name === selBand ? " sel" : "") + '" href="#/genes/' + selChr + "/" + encodeURIComponent(b.name) + '">' +
           '<span class="band-name">' + esc(selChr + b.name) + '</span><span class="band-count">' + n + " gène" + (n > 1 ? "s" : "") + "</span></a>";
       }).join("");
-      var genePanel = "";
-      var locus = GENOME_LOCUS[selChr];
-      if (selBand && locus && locus[selBand]) {
-        var genes = locus[selBand];
-        var chips = genes.map(function (s) {
-          return '<a class="chip gene-chip" href="#/gene/' + encodeURIComponent(s) + '">' + esc(s) + "</a>";
-        }).join("");
-        genePanel = '<div class="card"><h2>Locus ' + esc(selChr + selBand) + " — " + genes.length + " gènes</h2><div class=\"chip-wrap scroll-box\">" + chips + "</div></div>";
-      }
+      var genePanel = selBand ? genePanelHtml(selChr, selBand) : "";
       detail =
         '<div class="karyotype-detail">' +
-          '<div class="card k-detail-svg"><h2>Chromosome ' + esc(selChr) + "</h2>" + bigSvg + "</div>" +
+          '<div class="card k-detail-svg"><h2>Chromosome ' + esc(selChr) + '<span class="band-hover" id="band-hover"></span></h2>' + bigSvg + "</div>" +
           '<div class="card"><h2>Bandes du chromosome ' + esc(selChr) + " (avec gènes)</h2><div class='band-list'>" + bandRows + "</div></div>" +
         "</div>" + genePanel;
     }
@@ -109,14 +101,28 @@
         '<p class="page-sub">Sélectionnez un chromosome, puis une bande cytogénétique pour retrouver les gènes du locus. ' +
         "Recherchez aussi un gène dans la barre d'accueil : sa fiche indique son chromosome et son locus.</p></div>" +
         '<div class="card"><div class="karyotype-grid">' + grid + "</div></div>" +
-        detail +
+        detail + '<div id="locus-panel">' + genePanel + "</div>" +
       "</div>";
 
+    lastApp = app;
     if (selChr) {
       app.querySelectorAll(".band[data-band]").forEach(function (el) {
         el.addEventListener("click", function () {
-          var h = "#/genes/" + selChr + "/" + encodeURIComponent(el.getAttribute("data-band"));
-          if (window.LOCUS_NAV) window.LOCUS_NAV(h); else location.hash = h;
+          selectBand(selChr, el.getAttribute("data-band"));
+        });
+        el.addEventListener("mouseenter", function () {
+          var b = el.getAttribute("data-band");
+          var locus = GENOME_LOCUS[selChr];
+          var n = locus && locus[b] ? locus[b].length : 0;
+          var lbl = document.getElementById("band-hover");
+          if (lbl) lbl.textContent = "chr" + selChr + " " + b + " — " + n + " gène" + (n > 1 ? "s" : "");
+        });
+      });
+      app.querySelectorAll(".band-row").forEach(function (el) {
+        el.addEventListener("click", function (ev) {
+          ev.preventDefault();
+          var m = /#\/genes\/([^/]+)\/(.+)$/.exec(el.getAttribute("href") || "");
+          if (m) selectBand(decodeURIComponent(m[1]), decodeURIComponent(m[2]));
         });
       });
     }
@@ -151,6 +157,36 @@
   function locusOf(sym) {
     var l = SYMBOL_LOCUS[sym];
     return l ? "chr" + l.chr + " " + l.chr + l.band : "";
+  }
+
+  var lastApp = null;
+
+  function genePanelHtml(chr, band) {
+    var locus = GENOME_LOCUS[chr];
+    if (!locus || !locus[band]) return "";
+    var genes = locus[band];
+    var chips = genes.map(function (s) {
+      return '<a class="chip gene-chip" href="#/gene/' + encodeURIComponent(s) + '">' + esc(s) + "</a>";
+    }).join("");
+    return '<div class="card"><h2>Locus ' + esc(chr + band) + " — " + genes.length + ' gènes</h2><div class="chip-wrap scroll-box">' + chips + "</div></div>";
+  }
+
+  function selectBand(chr, band) {
+    var app = lastApp || document.getElementById("app");
+    if (app && app.querySelectorAll) {
+      app.querySelectorAll(".band").forEach(function (el) {
+        el.classList.toggle("sel", el.getAttribute("data-band") === band);
+      });
+      app.querySelectorAll(".band-row").forEach(function (el) {
+        el.classList.toggle("sel", decodeURIComponent(el.getAttribute("href") || "") === "#/genes/" + chr + "/" + band);
+      });
+    }
+    var panel = document.getElementById("locus-panel");
+    if (panel) {
+      panel.innerHTML = genePanelHtml(chr, band);
+      if (panel.scrollIntoView) panel.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+    try { history.replaceState(null, "", "#/genes/" + chr + "/" + encodeURIComponent(band)); } catch (e) {}
   }
 
   var SYM_NORM = null;
@@ -221,6 +257,7 @@
     findLocusGene: findLocusGene,
     renderSimpleGene: renderSimpleGene,
     phenoCardHtml: phenoCardHtml,
-    locusOf: locusOf
+    locusOf: locusOf,
+    selectBand: selectBand
   };
 })();
