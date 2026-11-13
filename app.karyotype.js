@@ -93,7 +93,7 @@
         var chips = genes.map(function (s) {
           return '<a class="chip gene-chip" href="#/gene/' + encodeURIComponent(s) + '">' + esc(s) + "</a>";
         }).join("");
-        genePanel = '<div class="card"><h2>Locus ' + esc(selChr + selBand) + " — " + genes.length + " gènes</h2><div class='chip-wrap'>" + chips + "</div></div>";
+        genePanel = '<div class="card"><h2>Locus ' + esc(selChr + selBand) + " — " + genes.length + " gènes</h2><div class=\"chip-wrap scroll-box\">" + chips + "</div></div>";
       }
       detail =
         '<div class="karyotype-detail">' +
@@ -191,8 +191,8 @@
       return '<li><a href="https://omim.org/entry/' + esc(mim) + '" target="_blank" rel="noopener">' + esc(name) + '</a>' +
         '<span class="pheno-mim">#' + esc(mim) + "</span>" + internal + "</li>";
     }).join("");
-    return '<div class="card"><h2>Phénotypes OMIM (' + gene.phenotypes.length + ')</h2><ul class="pheno-list">' + items +
-      '</ul><p class="pheno-src">Source OMIM (via NCBI MedGen) — chaque phénotype pointe vers son entrée MIM.</p></div>';
+    return '<div class="card"><h2>Phénotypes OMIM (' + gene.phenotypes.length + ')</h2><div class="scroll-box"><ul class="pheno-list">' + items +
+      '</ul></div><p class="pheno-src">Source OMIM (via NCBI MedGen) — chaque phénotype pointe vers son entrée MIM.</p></div>';
   }
 
   function renderSimpleGene(app, gene) {

@@ -436,12 +436,13 @@
       });
     });
     var diseaseRefs = dedupeRefs(rawRefs);
-    var subsHtml = "";
+    var subsCard = "";
     if (d.subs && d.subs.length) {
-      subsHtml = '<div class="chip-wrap" style="margin-top:12px">' + d.subs.map(function (sid) {
-        var sd = DISEASES[sid];
-        return '<a class="chip" href="#/disease/' + encodeURIComponent(sid) + '">' + escapeHtml(sd ? sd.disease.name : sid) + "</a>";
-      }).join("") + "</div>";
+      subsCard = '<div class="card"><h2>Sous-pathologies (' + d.subs.length + ")</h2>" +
+        '<div class="scroll-box chip-wrap">' + d.subs.map(function (sid) {
+          var sd = DISEASES[sid];
+          return '<a class="chip" href="#/disease/' + encodeURIComponent(sid) + '">' + escapeHtml(sd ? sd.disease.name : sid) + "</a>";
+        }).join("") + "</div></div>";
     }
     var allGenes = agg.genes.slice();
     (agg.extra || []).forEach(function (s) {
@@ -465,19 +466,20 @@
             (d.inheritance ? '<span class="meta-chip"><span class="chip-label">Hérédité</span>' + escapeHtml(d.inheritance) + "</span>" : "") +
           "</div>" +
         "</div>" +
-        '<div class="detail-grid">' +
+        '<div class="detail-cols">' +
           '<div class="card">' +
             "<h2>Présentation clinique</h2>" +
             "<p style=\"margin:0;color:var(--ink-soft)\">" + escapeHtml(d.description) + "</p>" +
           "</div>" +
           '<div class="card">' +
-            "<h2>Gènes associés (" + agg.genes.length + (agg.extra ? agg.extra.length : 0) + ")</h2>" +
-            geneCards + subsHtml +
+            "<h2>Gènes associés (" + allGenes.length + ")</h2>" +
+            '<div class="scroll-box">' + geneCards + "</div>" +
           "</div>" +
-        "</div>" +
-        '<div class="card" style="margin-top:20px">' +
-          "<h2>Mécanisme moléculaire</h2>" +
-          "<p style=\"margin:0;color:var(--ink-soft)\">" + escapeHtml(d.mechanism) + "</p>" +
+          subsCard +
+          '<div class="card">' +
+            "<h2>Mécanisme moléculaire</h2>" +
+            "<p style=\"margin:0;color:var(--ink-soft)\">" + escapeHtml(d.mechanism) + "</p>" +
+          "</div>" +
         "</div>" +
         (diseaseRefs.length ? '<div class="card" style="margin-top:20px"><h2>Références clés</h2>' + refListHtml(diseaseRefs) + "</div>" : "") +
       "</div>";

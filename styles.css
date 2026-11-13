@@ -411,6 +411,19 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
   align-items: start;
 }
 
+.detail-cols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  gap: 20px;
+  align-items: start;
+}
+
+.scroll-box {
+  max-height: 340px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
 .card {
   background: var(--paper-raised);
   border: 1px solid var(--hairline);
@@ -693,6 +706,7 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
 
 @media (max-width: 860px) {
   .detail-grid { grid-template-columns: 1fr; }
+  .detail-cols { grid-template-columns: 1fr; }
   .footer-grid { grid-template-columns: 1fr; gap: 28px; }
   .brand-sub { display: none; }
   .hero { padding: 56px 0 32px; }
