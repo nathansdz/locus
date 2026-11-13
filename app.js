@@ -139,6 +139,10 @@
 
   var DISEASES = diseaseMap();
 
+  var OMIM_TO_DISEASE = {};
+  Object.keys(DISEASES).forEach(function (id) { OMIM_TO_DISEASE[DISEASES[id].disease.omim] = id; });
+  window.LOCUS_OMIM = OMIM_TO_DISEASE;
+
   function findGene(symbol) {
     symbol = normalize(symbol).toUpperCase();
     for (var i = 0; i < GENOME_DATA.genes.length; i++) {
@@ -361,17 +365,7 @@
               "</dl>" +
             "</div>" +
             (window.LOCUS && window.LOCUS.geneLocusCard ? window.LOCUS.geneLocusCard(gene) : "") +
-            (gene.phenotypes && gene.phenotypes.length ?
-              '<div class="card"><h2>Ph\u00e9notypes OMIM (' + gene.phenotypes.length + ")</h2><ul class=\"pheno-list\">" +
-              gene.phenotypes.map(function (p) {
-                var internal = "";
-                gene.diseases.forEach(function (d) {
-                  if (d.omim === p.mim) internal = ' <a class="pheno-link" href="#/disease/' + encodeURIComponent(d.id) + '">fiche \u2197</a>';
-                });
-                return '<li><a href="https://omim.org/entry/' + escapeHtml(p.mim) + '" target="_blank" rel="noopener">' + escapeHtml(p.name) + '</a>' +
-                  '<span class="pheno-mim">#' + escapeHtml(p.mim) + "</span>" + internal + "</li>";
-              }).join("") +
-              '</ul><p class="pheno-src">Source OMIM (via NCBI MedGen) \u2014 chaque ph\u00e9notype pointe vers son entr\u00e9e MIM.</p></div>' : "") +
+            (window.LOCUS && window.LOCUS.phenoCardHtml ? window.LOCUS.phenoCardHtml(gene) : "") +
             '<div class="card">' +
               "<h2>Expression cellulaire</h2>" +
               exprRows +
@@ -470,7 +464,14 @@
       renderHome();
     } else if (section === "gene") {
       var gene = findGene(arg);
-      if (gene) renderGene(gene); else renderNotFound();
+      if (gene) {
+        renderGene(gene);
+      } else if (window.LOCUS && window.LOCUS.findLocusGene) {
+        var lg = window.LOCUS.findLocusGene(arg);
+        if (lg) window.LOCUS.renderSimpleGene(app, lg); else renderNotFound();
+      } else {
+        renderNotFound();
+      }
     } else if (section === "protein") {
       var byProt = findGeneByProtein(arg);
       if (byProt) { go("#/gene/" + encodeURIComponent(byProt.symbol), true); return; }

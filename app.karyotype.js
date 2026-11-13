@@ -91,8 +91,7 @@
       if (selBand && locus && locus[selBand]) {
         var genes = locus[selBand];
         var chips = genes.map(function (s) {
-          if (ATLAS[s]) return '<a class="chip gene-chip" href="#/gene/' + encodeURIComponent(s) + '">' + esc(s) + "</a>";
-          return '<span class="chip gene-chip plain" title="fiche non détaillée">' + esc(s) + "</span>";
+          return '<a class="chip gene-chip" href="#/gene/' + encodeURIComponent(s) + '">' + esc(s) + "</a>";
         }).join("");
         genePanel = '<div class="card"><h2>Locus ' + esc(selChr + selBand) + " — " + genes.length + " gènes</h2><div class='chip-wrap'>" + chips + "</div></div>";
       }
@@ -132,7 +131,7 @@
         label: sym,
         sub: "chr" + l.chr + " · " + l.chr + l.band + (ATLAS[sym] ? " · fiche détaillée" : ""),
         terms: [sym],
-        route: ATLAS[sym] ? "#/gene/" + encodeURIComponent(sym) : "#/genes/" + l.chr + "/" + encodeURIComponent(l.band)
+        route: "#/gene/" + encodeURIComponent(sym)
       });
     });
     return out;
@@ -149,9 +148,73 @@
       "</div>";
   }
 
+  var SYM_NORM = null;
+  function normMap() {
+    if (!SYM_NORM) {
+      SYM_NORM = {};
+      Object.keys(SYMBOL_LOCUS).forEach(function (s) { SYM_NORM[s.toUpperCase()] = s; });
+    }
+    return SYM_NORM;
+  }
+
+  function findLocusGene(symbol) {
+    var sym = normMap()[(symbol || "").toUpperCase()];
+    if (!sym) return null;
+    var l = SYMBOL_LOCUS[sym];
+    var ph = (typeof DATA_PHENOTYPES !== "undefined") ? DATA_PHENOTYPES[sym] : null;
+    return {
+      symbol: sym,
+      name: sym,
+      locus: l.chr + l.band,
+      strand: "",
+      geneType: "",
+      aliases: [],
+      protein: { name: "", uniprot: "", length: 0, function: "" },
+      expression: [],
+      diseases: [],
+      omim: ph && ph.omim ? ph.omim : undefined,
+      phenotypes: ph && ph.phenotypes ? ph.phenotypes : undefined
+    };
+  }
+
+  function phenoCardHtml(gene) {
+    if (!gene.phenotypes || !gene.phenotypes.length) return "";
+    var omimMap = window.LOCUS_OMIM || {};
+    var items = gene.phenotypes.map(function (p) {
+      var mim = p[0], name = p[1];
+      var internal = omimMap[mim] ? ' <a class="pheno-link" href="#/disease/' + encodeURIComponent(omimMap[mim]) + '">fiche ↗</a>' : "";
+      return '<li><a href="https://omim.org/entry/' + esc(mim) + '" target="_blank" rel="noopener">' + esc(name) + '</a>' +
+        '<span class="pheno-mim">#' + esc(mim) + "</span>" + internal + "</li>";
+    }).join("");
+    return '<div class="card"><h2>Phénotypes OMIM (' + gene.phenotypes.length + ')</h2><ul class="pheno-list">' + items +
+      '</ul><p class="pheno-src">Source OMIM (via NCBI MedGen) — chaque phénotype pointe vers son entrée MIM.</p></div>';
+  }
+
+  function renderSimpleGene(app, gene) {
+    document.title = gene.symbol + " — LOCUS";
+    app.innerHTML =
+      '<div class="page">' +
+        '<a class="back-link" href="#/">← Retour à la recherche</a>' +
+        '<div class="page-head">' +
+          '<h1><span class="gene-sym">' + esc(gene.symbol) + "</span></h1>" +
+          '<div class="chip-row">' +
+            '<span class="meta-chip"><span class="chip-label">Locus</span>' + esc(gene.locus) + "</span>" +
+            (gene.omim ? '<span class="meta-chip"><span class="chip-label">OMIM gène</span><a href="https://omim.org/entry/' + esc(gene.omim) + '" target="_blank" rel="noopener">#' + esc(gene.omim) + ' ↗</a></span>' : "") +
+          "</div>" +
+        "</div>" +
+        '<div class="detail-grid"><div>' +
+          geneLocusCard(gene) +
+          phenoCardHtml(gene) +
+        "</div></div>" +
+      "</div>";
+  }
+
   window.LOCUS = {
     extraIndex: extraIndex,
     renderGenes: renderGenes,
-    geneLocusCard: geneLocusCard
+    geneLocusCard: geneLocusCard,
+    findLocusGene: findLocusGene,
+    renderSimpleGene: renderSimpleGene,
+    phenoCardHtml: phenoCardHtml
   };
 })();

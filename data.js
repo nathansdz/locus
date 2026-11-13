@@ -21,6 +21,11 @@ if (typeof DATA_REFERENCES !== "undefined") {
 if (typeof DATA_PHENOTYPES !== "undefined") {
   GENOME_DATA.genes.forEach(function (gene) {
     var ph = DATA_PHENOTYPES[gene.symbol];
+    if (!ph && gene.aliases) {
+      for (var i = 0; i < gene.aliases.length; i++) {
+        if (DATA_PHENOTYPES[gene.aliases[i]]) { ph = DATA_PHENOTYPES[gene.aliases[i]]; break; }
+      }
+    }
     if (!ph) return;
     if (ph.omim) gene.omim = ph.omim;
     if (ph.phenotypes && ph.phenotypes.length) gene.phenotypes = ph.phenotypes;
