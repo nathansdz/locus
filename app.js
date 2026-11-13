@@ -345,6 +345,7 @@
             '<span class="meta-chip"><span class="chip-label">Locus</span>' + escapeHtml(gene.locus) + "</span>" +
             '<span class="meta-chip"><span class="chip-label">Brin</span>' + escapeHtml(gene.strand) + "</span>" +
             '<span class="meta-chip"><span class="chip-label">Type</span>' + escapeHtml(gene.geneType) + "</span>" +
+            (gene.omim ? '<span class="meta-chip"><span class="chip-label">OMIM g\u00e8ne</span><a href="https://omim.org/entry/' + escapeHtml(gene.omim) + '" target="_blank" rel="noopener">#' + escapeHtml(gene.omim) + ' \u2197</a></span>' : "") +
           "</div>" +
         "</div>" +
         '<div class="detail-grid">' +
@@ -360,6 +361,17 @@
               "</dl>" +
             "</div>" +
             (window.LOCUS && window.LOCUS.geneLocusCard ? window.LOCUS.geneLocusCard(gene) : "") +
+            (gene.phenotypes && gene.phenotypes.length ?
+              '<div class="card"><h2>Ph\u00e9notypes OMIM (' + gene.phenotypes.length + ")</h2><ul class=\"pheno-list\">" +
+              gene.phenotypes.map(function (p) {
+                var internal = "";
+                gene.diseases.forEach(function (d) {
+                  if (d.omim === p.mim) internal = ' <a class="pheno-link" href="#/disease/' + encodeURIComponent(d.id) + '">fiche \u2197</a>';
+                });
+                return '<li><a href="https://omim.org/entry/' + escapeHtml(p.mim) + '" target="_blank" rel="noopener">' + escapeHtml(p.name) + '</a>' +
+                  '<span class="pheno-mim">#' + escapeHtml(p.mim) + "</span>" + internal + "</li>";
+              }).join("") +
+              '</ul><p class="pheno-src">Source OMIM (via NCBI MedGen) \u2014 chaque ph\u00e9notype pointe vers son entr\u00e9e MIM.</p></div>' : "") +
             '<div class="card">' +
               "<h2>Expression cellulaire</h2>" +
               exprRows +

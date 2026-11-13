@@ -18,6 +18,15 @@ if (typeof DATA_REFERENCES !== "undefined") {
   });
 }
 
+if (typeof DATA_PHENOTYPES !== "undefined") {
+  GENOME_DATA.genes.forEach(function (gene) {
+    var ph = DATA_PHENOTYPES[gene.symbol];
+    if (!ph) return;
+    if (ph.omim) gene.omim = ph.omim;
+    if (ph.phenotypes && ph.phenotypes.length) gene.phenotypes = ph.phenotypes;
+  });
+}
+
 if (typeof module !== "undefined" && module.exports) {
   module.exports = GENOME_DATA;
 }

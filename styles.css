@@ -564,6 +564,48 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
 
 .ref-doi:hover { text-decoration: underline; }
 
+/* ---------- Phénotypes OMIM ---------- */
+
+.pheno-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 7px;
+}
+
+.pheno-list li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 13.5px;
+}
+
+.pheno-list li > a { color: var(--ink); text-decoration: none; }
+.pheno-list li > a:hover { color: var(--accent-bright); text-decoration: underline; }
+
+.pheno-mim {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--faint);
+}
+
+.pheno-link {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--accent-bright);
+  text-decoration: none;
+}
+
+.pheno-link:hover { text-decoration: underline; }
+
+.pheno-src {
+  margin: 12px 0 0;
+  font-size: 11.5px;
+  color: var(--faint);
+}
+
 /* ---------- Caryotype ---------- */
 
 .karyotype-grid {
