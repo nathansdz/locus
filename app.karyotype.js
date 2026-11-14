@@ -246,6 +246,7 @@
         '<div class="detail-grid"><div>' +
           geneLocusCard(gene) +
           phenoCardHtml(gene) +
+          (window.LOCUS_EXONS && window.LOCUS_EXONS.card ? window.LOCUS_EXONS.card(gene) : "") +
         "</div></div>" +
       "</div>";
   }

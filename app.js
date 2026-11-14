@@ -424,6 +424,7 @@
             "</div>" +
             (window.LOCUS && window.LOCUS.geneLocusCard ? window.LOCUS.geneLocusCard(gene) : "") +
             (window.LOCUS && window.LOCUS.phenoCardHtml ? window.LOCUS.phenoCardHtml(gene) : "") +
+            (window.LOCUS_EXONS && window.LOCUS_EXONS.card ? window.LOCUS_EXONS.card(gene) : "") +
             '<div class="card">' +
               "<h2>Expression cellulaire</h2>" +
               exprRows +

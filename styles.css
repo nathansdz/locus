@@ -669,6 +669,19 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
   margin-left: 12px;
 }
 
+/* ---------- ARN pré-messager (exons/introns) ---------- */
+
+.exon-svg-wrap { margin-top: 10px; overflow-x: auto; }
+.exon-svg { display: block; width: 100%; min-width: 480px; height: 96px; }
+.exon-svg .intron { stroke: var(--faint); stroke-width: 2; }
+.exon-svg .exon { fill: var(--accent); stroke: var(--accent-bright); stroke-width: 1; }
+.exon-svg .exon-label { fill: #fff; font-family: var(--font-mono); font-size: 12px; text-anchor: middle; }
+.exon-svg .strand-arrow { fill: var(--accent-bright); }
+.exon-svg .strand-label { fill: var(--muted); font-family: var(--font-mono); font-size: 13px; }
+.exon-svg .tx-label { fill: var(--faint); font-family: var(--font-mono); font-size: 11px; }
+.tx-select { margin-top: 8px; font-family: var(--font-mono); font-size: 12px; padding: 4px 8px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--paper-raised); color: var(--ink); }
+.card-sub { font-family: var(--font-mono); font-size: 12px; font-weight: 400; color: var(--faint); margin-left: 10px; }
+
 .band-list {
   max-height: min(60vh, 440px);
   overflow: auto;
