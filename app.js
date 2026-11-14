@@ -220,7 +220,6 @@
       '<section class="hero">' +
         '<p class="eyebrow">Atlas du génome humain · gène → protéine → cellule → pathologie</p>' +
         "<h1>Du <em>gène</em> à la <em>maladie</em>.</h1>" +
-        '<p class="hero-lede">Deux barres de recherche : un gène (ou sa protéine), ou une pathologie — pour explorer leurs liens : produit protéique, types cellulaires d\'expression et pathologies associées aux mutations.</p>' +
         '<div class="search-duo">' +
           '<div class="search-wrap">' +
             '<label class="search-label" for="search-gene">Gène / protéine</label>' +
