@@ -140,28 +140,6 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
   max-width: 640px;
 }
 
-.search-duo {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  max-width: 980px;
-  margin: 0 auto;
-}
-
-.search-duo .search-wrap { max-width: none; }
-
-.search-label {
-  display: block;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--faint);
-  margin: 0 2px 8px;
-}
-
-.ex-sep { display: inline-block; width: 18px; }
-
 .search-box {
   display: flex;
   align-items: center;
@@ -736,7 +714,6 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
 @media (max-width: 860px) {
   .detail-grid { grid-template-columns: 1fr; }
   .detail-cols { grid-template-columns: 1fr; }
-  .search-duo { grid-template-columns: 1fr; }
   .footer-grid { grid-template-columns: 1fr; gap: 28px; }
   .brand-sub { display: none; }
   .hero { padding: 56px 0 32px; }

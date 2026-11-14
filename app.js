@@ -207,8 +207,7 @@
 
   /* ---------- Home ---------- */
 
-  var EXAMPLES_GENE = ["TP53", "p53", "BRCA1", "CFTR", "A1BG"];
-  var EXAMPLES_DISEASE = ["mucoviscidose", "Charcot-Marie-Tooth", "Huntington", "drépanocytose", "cardiomyopathie hypertrophique", "Parkinson"];
+  var EXAMPLES = ["TP53", "p53", "BRCA1", "CFTR", "mucoviscidose", "Huntington", "Alzheimer", "drépanocytose", "Charcot-Marie-Tooth", "cardiomyopathie hypertrophique", "Parkinson", "Rett"];
   var SEARCH_ICON = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.8-3.8"/></svg>';
 
   function renderHome() {
@@ -220,32 +219,17 @@
       '<section class="hero">' +
         '<p class="eyebrow">Atlas du génome humain · gène → protéine → cellule → pathologie</p>' +
         "<h1>Du <em>gène</em> à la <em>maladie</em>.</h1>" +
-        '<div class="search-duo">' +
-          '<div class="search-wrap">' +
-            '<label class="search-label" for="search-gene">Gène / protéine</label>' +
-            '<div class="search-box">' +
-              SEARCH_ICON +
-              '<input id="search-gene" type="text" role="combobox" aria-expanded="false" aria-controls="suggestions-gene" aria-autocomplete="list" autocomplete="off" spellcheck="false" placeholder="Nom d\'un gène ou d\'une protéine… (ex. TP53, p53)" aria-label="Rechercher un gène ou une protéine">' +
-              '<span class="search-kbd" aria-hidden="true">/</span>' +
-            "</div>" +
-            '<div id="suggestions-gene" class="suggestions" role="listbox" aria-label="Suggestions gènes et protéines"></div>' +
+        '<div class="search-wrap">' +
+          '<div class="search-box">' +
+            SEARCH_ICON +
+            '<input id="search-input" type="text" role="combobox" aria-expanded="false" aria-controls="suggestions" aria-autocomplete="list" autocomplete="off" spellcheck="false" placeholder="Nom d\'un gène, d\'une protéine ou d\'une maladie…" aria-label="Rechercher un gène, une protéine ou une maladie">' +
+            '<span class="search-kbd" aria-hidden="true">/</span>' +
           "</div>" +
-          '<div class="search-wrap">' +
-            '<label class="search-label" for="search-disease">Pathologie</label>' +
-            '<div class="search-box">' +
-              SEARCH_ICON +
-              '<input id="search-disease" type="text" role="combobox" aria-expanded="false" aria-controls="suggestions-disease" aria-autocomplete="list" autocomplete="off" spellcheck="false" placeholder="Nom d\'une maladie… (ex. mucoviscidose, Charcot-Marie-Tooth)" aria-label="Rechercher une pathologie">' +
-            "</div>" +
-            '<div id="suggestions-disease" class="suggestions" role="listbox" aria-label="Suggestions maladies"></div>' +
-          "</div>" +
+          '<div id="suggestions" class="suggestions" role="listbox" aria-label="Suggestions"></div>' +
         "</div>" +
-        '<div class="hero-examples"><span>Gènes :</span>' +
-          EXAMPLES_GENE.map(function (e) {
-            return '<button type="button" class="chip" data-bar="gene" data-q="' + escapeHtml(e) + '">' + escapeHtml(e) + "</button>";
-          }).join("") +
-          '<span class="ex-sep"></span><span>Maladies :</span>' +
-          EXAMPLES_DISEASE.map(function (e) {
-            return '<button type="button" class="chip" data-bar="disease" data-q="' + escapeHtml(e) + '">' + escapeHtml(e) + "</button>";
+        '<div class="hero-examples"><span>Exemples :</span>' +
+          EXAMPLES.map(function (e) {
+            return '<button type="button" class="chip" data-q="' + escapeHtml(e) + '">' + escapeHtml(e) + "</button>";
           }).join("") +
         "</div>" +
       "</section>" +
@@ -374,22 +358,17 @@
   }
 
   function initSearch() {
-    initSearchBar("search-gene", "suggestions-gene", ["gene", "protein"]);
-    initSearchBar("search-disease", "suggestions-disease", ["disease"]);
+    initSearchBar("search-input", "suggestions", null);
     document.addEventListener("click", function (ev) {
       if (!ev.target.closest(".search-wrap")) closeSuggestions();
     });
     document.querySelectorAll(".hero-examples .chip").forEach(function (chip) {
       chip.addEventListener("click", function () {
-        var bar = chip.getAttribute("data-bar") === "disease" ? "disease" : "gene";
-        var inputId = bar === "disease" ? "search-disease" : "search-gene";
-        var suggId = bar === "disease" ? "suggestions-disease" : "suggestions-gene";
-        var types = bar === "disease" ? ["disease"] : ["gene", "protein"];
-        var input = document.getElementById(inputId);
+        var input = document.getElementById("search-input");
         if (!input) return;
         input.value = chip.getAttribute("data-q");
         input.focus();
-        renderSuggestions(search(input.value, types), input.value.trim(), suggId, inputId);
+        renderSuggestions(search(input.value), input.value.trim(), "suggestions", "search-input");
       });
     });
   }
@@ -597,7 +576,7 @@
 
   document.addEventListener("keydown", function (ev) {
     if (ev.key === "/" && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) {
-      var input = document.getElementById("search-gene");
+      var input = document.getElementById("search-input");
       if (input) { ev.preventDefault(); input.focus(); }
     }
   });
