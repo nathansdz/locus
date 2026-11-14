@@ -623,10 +623,18 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
 
 .karyotype-grid {
   display: flex;
-  flex-wrap: wrap;
-  gap: 16px 20px;
-  align-items: flex-end;
+  flex-direction: column;
+  gap: 22px;
 }
+
+.k-row {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.k-chrom-svg { display: block; }
 
 .k-chrom {
   display: flex;
