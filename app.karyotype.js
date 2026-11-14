@@ -66,22 +66,13 @@
     var selChr = normalizeChr(chrArg);
     var selBand = bandArg || "";
 
-    var KARYO_ROWS = [["1","2","3"],["4","5"],["6","7","X"],["8","9","10","11"],["12","13","14","15"],["16","17","18"],["19","20"],["21","22","Y"]];
-    var grid = KARYO_ROWS.map(function (row) {
-      var Hs = row.map(function (c) { return Math.round(64 + (CHROM_LEN[c] / CHROM_LEN["1"]) * 176); });
-      var Hmax = Math.max.apply(null, Hs);
-      var cells = row.map(function (c, i) {
-        var len = CHROM_LEN[c];
-        var H = Hs[i];
-        var W = 30;
-        var f = 0.5;
-        (CYTOBANDS[c] || []).forEach(function (b) { if (b.stain === "acen") f = ((b.s + b.e) / 2) / len; });
-        var mt = Math.max(0, Math.round(Hmax / 2 - f * H));
-        return '<a class="k-chrom' + (c === selChr ? " sel" : "") + '" href="#/genes/' + c + '" title="chr' + c + " — " + countGenes(c) + ' gènes localisés" style="height:' + Hmax + 'px">' +
-          '<span class="k-chrom-svg" style="margin-top:' + mt + 'px">' + chromSvg(c, W, H, c === selChr ? selBand : null, false) + "</span>" +
-          '<span class="k-label">chr' + c + "</span></a>";
-      }).join("");
-      return '<div class="k-row">' + cells + "</div>";
+    var grid = CHROM_ORDER.map(function (c) {
+      var len = CHROM_LEN[c];
+      var H = Math.round(64 + (len / CHROM_LEN["1"]) * 176);
+      var W = 30;
+      return '<a class="k-chrom' + (c === selChr ? " sel" : "") + '" href="#/genes/' + c + '" title="chr' + c + " — " + countGenes(c) + ' gènes localisés">' +
+        chromSvg(c, W, H, c === selChr ? selBand : null, false) +
+        '<span class="k-label">chr' + c + "</span></a>";
     }).join("");
 
     var detail = "";
